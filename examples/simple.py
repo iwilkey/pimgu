@@ -6,7 +6,7 @@
 # Version: v05.04.2023
 ###################################################################################
 
-# For direct use of all the beautiful functions of ImGui.
+# For direct use of all the beautiful functions of Dear ImGui.
 import imgui
 # The only Pimgu class you have to worry about :).
 from pimgu import Applet
@@ -16,8 +16,14 @@ def pimgu_gui_window():
     Feel free to use any imgui.*() functions here to build your GUI. In this case, we are creating
     a simple window that reads "Hello, world!".
     """
+    # Creating a simple window.
     imgui.begin("My First Pimgu Window!")
+    # Adding text to it.
     imgui.text("Hello, world!")
+    
+    # NOTE: All the Dear Imgui Python bindings functions can be called here, so be creative!
+    
+    # Ending this windows ImGui calls. (Important!)
     imgui.end()
 
 # Create the Pimgu applet.
@@ -31,7 +37,7 @@ app.set_target_fps(59.0)
 # things can happen during runtime.
 app.register_imgui_callback(pimgu_gui_window)
 
-# Run the Pimgu application after you have registered all of your call backs. Keep in mind, this will
+# Run the Pimgu application after you have registered all of your callbacks. Keep in mind, this will
 # block the main thread, so no code under this will be called until the Pimgu application stops running.
 # NOTE: If you'd like to do parallel processes, it is recommended to use Pythons "threading" package.
 # Just be sure to always run Pimgu in the main thread.

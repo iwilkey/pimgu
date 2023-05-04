@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='pimgu',
-    version='v05.04.2023.2',
+    version='v05.04.2023.6',
     description='A simple framework for creating robust 2D GUI applications using Pygame and ImGui.',
     long_description=long_description,
     long_description_content_type="text/markdown",

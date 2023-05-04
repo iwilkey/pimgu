@@ -56,7 +56,7 @@ Create a new Applet instance with the following parameters:
 - `run()`: Runs the main loop of the application.
 - `register_input_callback(callback: Callable)`: Register a callback to be called during Applet input processing.
 - `register_imgui_callback(callback: Callable)`: Register a callback to be called during Applet GUI processing.
-- `register_pygame_render_callback(callback: Callable)`: Register a callback to be called during Pygame render time.
+- `register_pygame_render_callback(callback: Callable[..., Tuple[pygame.Surface, int, int]])`: Register a callback to be called during Pygame render time.
 - `register_tick_callback(callback: Callable)`: Register a callback to be called during the Applet's tick stage (before rendering, after input).
 
 #### Applet Properties

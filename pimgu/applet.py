@@ -7,16 +7,71 @@
 ###################################################################################
 
 # Python standards.
-import sys
 import os
-from typing import List, Callable
+from typing import List, Callable, Tuple
 # Dependencies.
 import pygame as engine
-import OpenGL.GL as gl
+from OpenGL.GL import *
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
 import imgui
 from imgui.integrations.pygame import PygameRenderer
 
-version = "v05.04.2023"
+version = "v05.04.2023.6"
+
+#################################################
+# OpenGL Helper Methods to make our lives easier.
+#################################################
+
+def pygame_surface_to_opengl_texture(surface) -> int:
+    """ Helper method that accepts a Pygame Surface object and converts it to an
+    OpenGL texture that can be rendered by the Pimgu renderer.
+    Args:
+        surface (pygame.Surface): The surface to be rendered.
+    Returns:
+        texture_id: The OpenGL texture ID to be rendered.
+    """
+    width, height = surface.get_size()
+    texture_data = engine.image.tostring(surface, "RGBA", 1)
+    texture_id : int = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, texture_id)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture_data)
+    return texture_id
+
+def draw_texture(texture_id : int, surface_width : int, surface_height : int, center_x : int, center_y : int):
+    """ Helper method that accepts a texture ID and renders it to the screen with
+    a given width and height at the given center point.
+    Args:
+        texture_id: The OpenGL texture ID.
+        surface_width (int): The width of the rendered surface.
+        surface_height (int): The height of the rendered surface.
+        center_x (int): The center X location of the rendered surface.
+        center_y (int): The center Y location of the rendered surface.
+    """
+    glEnable(GL_TEXTURE_2D)
+    glBindTexture(GL_TEXTURE_2D, texture_id)
+
+    # Compute the quad vertices.
+    x1, y1 = center_x, center_y
+    x2, y2 = center_x + surface_width, center_y
+    x3, y3 = center_x + surface_width, center_y + surface_height
+    x4, y4 = center_x, center_y + surface_height
+
+    # Draw the quad with the texture.
+    glBegin(GL_QUADS)
+    glTexCoord2f(0, 0); glVertex3f(x1, y1, 0)
+    glTexCoord2f(1, 0); glVertex3f(x2, y2, 0)
+    glTexCoord2f(1, 1); glVertex3f(x3, y3, 0)
+    glTexCoord2f(0, 1); glVertex3f(x4, y4, 0)
+    glEnd()
+
+    glDisable(GL_TEXTURE_2D)
+
+#####################
+# Pimgu Applet class.
+#####################
 
 class Applet:
     """ Core framework for a Pimgu Applet. Supports robust, high-level tools for powerful 2D GUI applications.
@@ -58,7 +113,15 @@ class Applet:
         
         # Set up the screen.
         self.__screen : engine.Surface = engine.display.set_mode(self.__dimensions, engine.OPENGL | engine.DOUBLEBUF)
-    
+
+        # Set up OpenGL context.
+        glViewport(0, 0, self.__dimensions[0], self.__dimensions[1])
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluOrtho2D(0, self.__dimensions[0], self.__dimensions[1], 0)
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+        
         # Clear color.
         self.__cls_color : tuple = (0.1, 0.1, 0.1, 1)
 
@@ -83,15 +146,17 @@ class Applet:
         #############
         # CALLBACKS #
         #############
-        
+
         # Callbacks during input processing stage.
         self.__input_callbacks : List[Callable] = []
         # Callbacks during GUI processing state.
         self.__imgui_callbacks : List[Callable] = []
         # Callbacks during render time (for Pygame).
-        self.__render_callbacks : List[Callable] = []
+        self.__render_callbacks : List[Callable[..., Tuple[engine.Surface, int, int]]] = []
         # Callbacks during tick time (before any rendering).
         self.__tick_callbacks : List[Callable] = []
+        # Called when the Pimgu application is closed.
+        self.__on_end_callback : Callable = None
         
         # Run the application.
         self.__running : bool = False
@@ -116,10 +181,10 @@ class Applet:
             # Render.
             self.__render()
             
+        self.__on_end_callback()
         self.__imgui_renderer.shutdown()
         engine.quit()
-        sys.exit()
-            
+        
     def __sync(self):
         """ Sync the engine to the target frame rate.
         """
@@ -150,18 +215,28 @@ class Applet:
     def __cls(self):
         """ Clear the GL color buffer.
         """
-        gl.glClearColor(self.__cls_color[0], self.__cls_color[1], self.__cls_color[2], self.__cls_color[3])
-        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
+        glClearColor(self.__cls_color[0], self.__cls_color[1], self.__cls_color[2], self.__cls_color[3])
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
     def __render(self):
         """ Render the current state of the applet.
         """
+        
+        # Custom Pygame Surface render callbacks.
+        for callback in self.__render_callbacks:
+            try:
+                surface, cx, cy = callback()
+            except TypeError:
+                raise Exception("[PIMGU] When it is desired to draw a pygame surface to the screen, your callback must return: surface, center_x, center_y! See Pimgu examples on GitHub: https://github.com/iwilkey/pimgu.")
+            # Surface dimensions.
+            width, height = surface.get_size()
+            texture_id : int = pygame_surface_to_opengl_texture(surface)
+            draw_texture(texture_id, width, height, cx, cy)
+        
         # Draw ImGui data to renderer.
         imgui.render()
         self.__imgui_renderer.render(imgui.get_draw_data())
-        # Custom Pygame render callbacks.
-        for callback in self.__render_callbacks:
-            callback(screen = self.__screen)
+        
         # Flip the display color buffers to render.
         engine.display.flip()
         
@@ -179,7 +254,7 @@ class Applet:
         """
         self.__imgui_callbacks.append(callback)
 
-    def register_pygame_render_callback(self, callback : Callable):
+    def register_pygame_render_callback(self, callback : Callable[..., Tuple[engine.Surface, int, int]]):
         """ Register a callback to be called during Pygame render time.
         """
         self.__render_callbacks.append(callback)
@@ -188,6 +263,10 @@ class Applet:
         """ Regsiter a callback to be called during the Applet's tick stage (before rendering, after input.)
         """
         self.__tick_callbacks.append(callback)
+    def register_on_end_callback(self, callback : Callable):
+        """ Register a callback to occur when the application is terminated (running = False after running).
+        """
+        self.__on_end_callback = callback
     
     #######################
     # GETTERS AND SETTERS #
