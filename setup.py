@@ -1,9 +1,14 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name='pimgu',
-    version='v05.04.2023',
+    version='v05.04.2023.2',
     description='A simple framework for creating robust 2D GUI applications using Pygame and ImGui.',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author='Ian Wilkey',
     author_email='iwilkey@mail.bradley.edu',
     url='https://github.com/iwilkey/pimgu',
