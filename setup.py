@@ -1,0 +1,28 @@
+from setuptools import setup, find_packages
+
+setup(
+    name='pimgu',
+    version='v05.04.2023',
+    description='A simple framework for creating robust 2D GUI applications using Pygame and ImGui.',
+    author='Ian Wilkey',
+    author_email='iwilkey@mail.bradley.edu',
+    url='https://github.com/iwilkey/pimgu',
+    packages=find_packages(),
+    install_requires=[
+        'pygame',
+        'PyOpenGL',
+        'imgui',
+        'numpy'
+    ],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11'
+    ],
+)
