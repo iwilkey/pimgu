@@ -1,5 +1,4 @@
 # Pimgu
-#### A simple framework for creating robust 2D GUI applications
 
 Pimgu is a lightweight framework that combines the power of Pygame and ImGui to create intuitive and responsive 2D GUI applications. This framework provides an easy-to-use interface to build user interfaces while harnessing the capabilities of Pygame and ImGui under the hood.
 
@@ -88,4 +87,4 @@ Pimgu is released under the MIT License. See the `LICENSE` file for more informa
 
 ### Contact
 
-This project is developed and maintained by Ian Wilkey (iwilkey). Feel free to contact him through his website: https://www.iwilkey.com/contact with any questions, concerns, ideas, or issues.
+This project is developed and maintained by Ian Wilkey (iwilkey). Feel free to contact him through his website, https://www.iwilkey.com/contact, with any questions, concerns, ideas, or issues.
