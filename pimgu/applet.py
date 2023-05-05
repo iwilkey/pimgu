@@ -68,6 +68,11 @@ def draw_texture(texture_id : int, surface_width : int, surface_height : int, ce
     glEnd()
 
     glDisable(GL_TEXTURE_2D)
+    
+    # Delete the texture after rendering. This will prevent a memory leak.
+    # NOTE: This isn't the most efficient thing to do, but it doesn't matter as mucn since this
+    # application framework is not meant for high performance rendering, just GUI applications.
+    glDeleteTextures(1, [texture_id])
 
 #####################
 # Pimgu Applet class.

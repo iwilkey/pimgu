@@ -3,5 +3,5 @@ dist/
 build/
 imgui.ini
 releases/
-.DS.Store/
+.DS_Store/
 __pycache__
